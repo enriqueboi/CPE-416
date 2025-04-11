@@ -61,17 +61,9 @@ int main(void) {
 
       // Number is off the left of the screen
       if (pos_x < 0) {
-         // If pos_x is negative, less chars visible
-         int visible_count = numLength + pos_x;
          lcd_cursor(0, pos_y);
-         // New string will only be as long as amount visible plus null terminator
-         char visibleStr[visible_count + 1];
-         if (visible_count > 0) {
-            // New string is visible_count long, with source
-            // Change src pointer by adding the amount of cutoff charecters
-            strncpy(visibleStr, numStr - pos_x, visible_count + 1);
-            print_string(visibleStr);
-         }
+         // Amount of negative pos_x is number of chars not visible
+         print_string(visibleStr - pos_x);
       } // Number fits on screen or falls of to right
       else {
          lcd_cursor(pos_x, pos_y);
