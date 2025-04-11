@@ -1,0 +1,75 @@
+Function Documentation (Alphabetical): globals.h
+This document provides descriptions of the functions declared in the 'globals.h' header file, arranged in alphabetical order. These functions support various operations including digital I/O, I2C communication, LCD display control, motor and servo control, and sensor interfacing.
+
+
+
+u08 analog(u08 num)
+Reads the analog value from the specified analog pin number.
+u08 digital(u08 num)
+Reads the digital value (HIGH or LOW) from the specified digital pin number.
+u08 get_accel_x()
+Reads the X-axis value from the accelerometer.
+u08 get_accel_y()
+Reads the Y-axis value from the accelerometer.
+u08 get_accel_z()
+Reads the Z-axis value from the accelerometer.
+u08 get_btn(void)
+Checks if button SW1 is pressed. Returns 1 if pressed, 0 otherwise.
+u08 i2c_regread(u08 dev_addr, u08 address)
+Reads a single byte from a register of an I2C device.
+void clear_screen(void)
+Clears the LCD display screen.
+void clock_scl()
+Manually clocks the I2C SCL line for recovery or synchronization.
+void digital_dir(u08 num, u08 dir)
+Sets the direction (input/output) of a digital pin.
+void digital_out(u08 num, u08 out)
+Sets the output state (HIGH/LOW) of a digital pin.
+void i2c_regwrite(u08 dev_addr, u08 address, u08 data)
+Writes a single byte to a register of an I2C device.
+void i2c_start(void)
+Initiates an I2C start condition.
+void i2c_stop(void)
+Initiates an I2C stop condition.
+void init(void)
+Initializes all hardware modules and settings.
+void init_adc()
+Initializes the analog-to-digital converter module.
+void init_lcd()
+Initializes the LCD display.
+void init_motor()
+Initializes the motor controller module.
+void init_scrolling(char* m)
+Initializes LCD scrolling with a message.
+void init_servo()
+Initializes the servo controller module.
+void lcd_cursor(uint8_t col, uint8_t row)
+Moves the LCD cursor to a specific column and row.
+void led(u08 num, u08 state)
+Sets the specified LED to ON or OFF based on state.
+void led_off(u08 num)
+Turns off the specified LED (0 or 1).
+void led_on(u08 num)
+Turns on the specified LED (0 or 1).
+void print_num(u16 number)
+Prints a number on the LCD display.
+void print_string(char* string)
+Prints a null-terminated string to the LCD display.
+void read_register(u08 addr, u08* data, u08 num)
+Reads multiple bytes from the I2C device register.
+void send_address(u08 addr, u08 reg, u08 read)
+Sends an I2C device address and register with read/write flag.
+void set_motor(u08 num, signed char speed)
+Sets the speed and direction of a motor.
+void set_servo(u08 servo_num, u08 position)
+Sets the position of a specified servo.
+void test_motor(void)
+Runs a test routine for the motors.
+void toggle_scrolling()
+Toggles LCD message scrolling ON or OFF.
+void unlock_bus(void)
+Releases the I2C bus if it's stuck by toggling clock.
+void write_register(u08* data, u08 num)
+Writes multiple bytes to the I2C device register.
+
+
