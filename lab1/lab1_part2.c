@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 1 Part 3
+
+Description: Scroll names across the LCD. On button press, change names.
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>

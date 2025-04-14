@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 1 Part 4
+
+Description: Move 416 across the LCD based on tilt. Always keep at least on char on screen.
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
@@ -63,7 +71,7 @@ int main(void) {
       if (pos_x < 0) {
          lcd_cursor(0, pos_y);
          // Amount of negative pos_x is number of chars not visible
-         print_string(visibleStr - pos_x);
+         print_string(numStr - pos_x);
       } // Number fits on screen or falls of to right
       else {
          lcd_cursor(pos_x, pos_y);

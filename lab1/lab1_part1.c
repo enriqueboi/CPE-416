@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 1 Part 1
+
+Description: Smoothly fade in and out LED 1 then LED 2 on a loop
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
