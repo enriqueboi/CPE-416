@@ -5,33 +5,31 @@
 
 int main(void) {
    init(); // initialize board hardware
-   set_servo(0, 127);
-   set_servo(1, 127);
 
    while (1) {
 
       for (int i = 0; i <= 100; i++) {
          motor(0, i);
          motor(1, i);
-         _delay_ms(50);
+         _delay_ms(10);
       }
 
       for (int i = 100; i >= 0; i--) {
          motor(0, i);
          motor(1, i);
-         _delay_ms(50);
+         _delay_ms(10);
       }
 
       for (int i = 0; i >= -100; i--) {
          motor(0, i);
          motor(1, i);
-         _delay_ms(50);
+         _delay_ms(10);
       }
 
       for (int i = -100; i <= 0; i++) {
          motor(0, i);
          motor(1, i);
-         _delay_ms(50);
+         _delay_ms(10);
       }
    }
 }
