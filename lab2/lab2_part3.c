@@ -8,18 +8,25 @@
 #define RIGHT_SENSOR 4
 #define RIGHT_MOTOR 1
 
+#define MAX_SPEED_CHANGE 10
+
 u08 leftReading = 0;
 u08 rightReading = 0;
 
 int leftSpeed = 0;
 int rightSpeed = 0;
 
+int prevLeft = 0;
+int prevRight = 0;
+
 int error = 0;
 int prevError = 0;
 int changeError = 0;
+int sumError = 0;
 
-int gainKp = 1;
-float gainKd = 5;
+float gainKp = 0.08;
+float gainKd = 0.8;
+float gainKi = 0.02;
 
 // Arduino Map Implementation
 // https://docs.arduino.cc/language-reference/en/functions/math/map/
@@ -55,7 +62,7 @@ int main(void) {
    while (1) {
       // clear_screen();
 
-      leftReading = analog(LEFT_SENSOR) + 3;
+      leftReading = analog(LEFT_SENSOR) + 15;
       rightReading = analog(RIGHT_SENSOR);
 
       // print_num(leftReading);
@@ -79,11 +86,44 @@ int main(void) {
       // }
       changeError = error - prevError;
       prevError = error;
+      sumError += error;
 
-      leftSpeed = ((gainKp * -error) + (gainKd * -changeError) + 20);
-      rightSpeed = ((gainKp * error) + (gainKd * changeError) + 20);
+      if (sumError >= 500) {
+         sumError = 500;
+      }
+
+      if (sumError <= -500) {
+         sumError = -500;
+      }
+
+      leftSpeed = ((gainKp * -error) + (gainKd * -changeError) + (gainKi * -sumError) + 30);
+      rightSpeed = ((gainKp * error) + (gainKd * changeError) + (gainKi * sumError) + 30);
+
+      if (leftSpeed > (prevLeft + MAX_SPEED_CHANGE)) {
+         leftSpeed = prevLeft + MAX_SPEED_CHANGE;
+      }
+
+      if (leftSpeed < (prevLeft - MAX_SPEED_CHANGE)) {
+         leftSpeed = prevLeft - MAX_SPEED_CHANGE;
+      }
+
+      if (rightSpeed > (prevRight + MAX_SPEED_CHANGE)) {
+         rightSpeed = prevRight + MAX_SPEED_CHANGE;
+      }
+
+      if (rightSpeed < (prevRight - MAX_SPEED_CHANGE)) {
+         rightSpeed = prevRight - MAX_SPEED_CHANGE;
+      }
+
+      prevLeft = leftSpeed;
+      prevRight = rightSpeed;
 
       motor(LEFT_MOTOR, leftSpeed);
       motor(RIGHT_MOTOR, rightSpeed);
+
+      lcd_cursor(1, 0);
+      print_num(error);
+      lcd_cursor(0, 1);
+      print_num(changeError);
    }
 }
