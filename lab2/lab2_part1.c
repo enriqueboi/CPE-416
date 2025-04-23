@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 2 Part 1
+
+Description: Roll motors for -100 to 100 smoothly, continously
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>

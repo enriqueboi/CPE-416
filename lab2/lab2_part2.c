@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 2 Part 2
+
+Description: Bratenberg  bots, Fear and Aggresion
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>

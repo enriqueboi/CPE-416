@@ -1,3 +1,11 @@
+/*
+Name:  Jack Young and Enrique Murillo
+
+Assignment Lab 2 Part 3
+
+Description: PID Line Follower bot
+*/
+
 #include "globals.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
