@@ -21,7 +21,7 @@ u08 rightReading = 0;
 
 int error = 0;
 
-float gainKp = 0.08;
+float gainKp = 0.04;
 
 struct motor_command {
    int leftSpeed;
@@ -32,6 +32,33 @@ struct motor_command {
 // https://docs.arduino.cc/language-reference/en/functions/math/map/
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+struct motor_command compute_proportional(uint8_t left, uint8_t right) {
+   struct motor_command command;
+
+   error = leftReading - rightReading;
+
+   command.leftSpeed = ((gainKp * -error) + 20);
+   command.rightSpeed = ((gainKp * error) + 20);
+
+   if (command.leftSpeed > 100) {
+      command.leftSpeed = 100;
+   }
+
+   if (command.leftSpeed < 0) {
+      command.leftSpeed = 0;
+   }
+
+   if (command.rightSpeed > 100) {
+      command.rightSpeed = 100;
+   }
+
+   if (command.rightSpeed < 0) {
+      command.rightSpeed = 0;
+   }
+
+   return command;
 }
 
 void motor(uint8_t num, int speed) {
@@ -69,31 +96,4 @@ int main(void) {
       motor(LEFT_MOTOR, command.leftSpeed);
       motor(RIGHT_MOTOR, command.rightSpeed);
    }
-}
-
-struct motor_command compute_proportional(uint8_t left, uint8_t right) {
-   struct motor_command command;
-
-   error = leftReading - rightReading;
-
-   command.leftSpeed = ((gainKp * -error) + 20);
-   command.rightSpeed = ((gainKp * error) + 20);
-
-   if (command.leftSpeed > 100) {
-      command.leftSpeed = 100;
-   }
-
-   if (command.leftSpeed < 0) {
-      command.leftSpeed = 0;
-   }
-
-   if (command.rightSpeed > 100) {
-      command.rightSpeed = 100;
-   }
-
-   if (command.rightSpeed < 0) {
-      command.rightSpeed = 0;
-   }
-
-   return command;
 }

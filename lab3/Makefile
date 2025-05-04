@@ -4,6 +4,11 @@ SOURCE_LIB = $(wildcard $(BOARD_LIB)/*.c)
 CLOCK_RATE = 16000000L
 
 
+lab3_part2: lab3_part2.c $(wildcard $(BOARD_LIB)/*.c)
+	avr-gcc -I$(BOARD_LIB) -DF_CPU=$(CLOCK_RATE) -Wall -mmcu=atmega645a -O2 -o main.elf lab3_part2.c $(wildcard $(BOARD_LIB)/*.c)
+	avr-objcopy -O ihex main.elf main.hex
+	avr-size main.elf
+
 lab3_part1: lab3_part1.c $(wildcard $(BOARD_LIB)/*.c)
 	avr-gcc -I$(BOARD_LIB) -DF_CPU=$(CLOCK_RATE) -Wall -mmcu=atmega645a -O2 -o main.elf lab3_part1.c $(wildcard $(BOARD_LIB)/*.c)
 	avr-objcopy -O ihex main.elf main.hex
