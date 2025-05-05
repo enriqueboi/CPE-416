@@ -3,7 +3,7 @@ Name:  Jack Young and Enrique Murillo
 
 Assignment Lab 3 Part 2
 
-Description:
+Description:  Train a 2 input, 3 hidden node and 2 output nueral network to emulate a proprotinal line follower
 */
 
 #include "globals.h"
@@ -17,26 +17,25 @@ Description:
 #define RIGHT_SENSOR 4
 #define RIGHT_MOTOR 1
 
-float learningRate = 0.3;
-
-int error = 0;
-
 // Proportional gain
 float gainKp = 0.04;
 
+// A struct with speed for left and right motors, returned with values 0 - 100
 struct motor_command {
    int leftSpeed;
    int rightSpeed;
 };
 
+// Holds pairs of left/right sensor pair readings, values can be 0-255
 struct reading_pairs {
    u08 leftReading;
    u08 rightReading;
 };
 
+// An array of 200 sensor pairs. Used for training. Expected output not held here.
 struct reading_pairs pairs[200];
-// u08 currentPair = 0;
 
+// The definition of a hidden nueron. 2 inputs, 2 weights, a bias and output
 struct hidden_nueron {
    float in1;
    float in2;
@@ -46,6 +45,7 @@ struct hidden_nueron {
    float out;
 };
 
+// The defintion of a output nueron. 3 inputs, 3 weights, a bias and output.
 struct output_nueron {
    float in1;
    float in2;
@@ -57,11 +57,19 @@ struct output_nueron {
    float out;
 };
 
+// Arrays to hold the nuerons we have
+struct hidden_nueron hiddenN[3];
+struct output_nueron outputN[2];
+
+// Helper arrays to store old weights during back-propagation
 float oldOutWeights[6];
 float outCalcs[2];
 
-struct hidden_nueron hiddenN[3];
-struct output_nueron outputN[2];
+// Learning rate for our training. Will decrease with each epoch.
+float learningRate = 0.3;
+
+// Used to move back and forth between training and using NN
+u08 runNNController = 0;
 
 // Arduino Map Implementation
 // https://docs.arduino.cc/language-reference/en/functions/math/map/
@@ -69,8 +77,7 @@ long mapInt(long x, long in_min, long in_max, long out_min, long out_max) {
    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-// Arduino Map Implementation
-// https://docs.arduino.cc/language-reference/en/functions/math/map/
+// Adapted from Arduino Map Implementation
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -80,7 +87,7 @@ float mapFloat(float x, float in_min, float in_max, float out_min, float out_max
 struct motor_command compute_proportional(u08 left, u08 right) {
    struct motor_command command;
 
-   error = left - right;
+   int error = left - right;
 
    command.leftSpeed = ((gainKp * -error) + 20);
    command.rightSpeed = ((gainKp * error) + 20);
@@ -163,11 +170,12 @@ void runController() {
    motor(RIGHT_MOTOR, command.rightSpeed);
 }
 
+// Return a random number from 0 - 1.0
 float getRand() {
    return (rand() % 100) / 100.0f;
 }
 
-// Get starter inputs, set random weights and compute inital output
+// Get first sensor pairs, set random weights and compute inital output
 void initHiddens() {
    for (int i = 0; i < 3; i++) {
       hiddenN[i].in1 = mapFloat(pairs[0].leftReading, 0, 255, 0, 1.0);
@@ -181,7 +189,7 @@ void initHiddens() {
    }
 }
 
-// Get starter inputs, set random weights and compute inital output
+// Get hidden node outputs, set random weights and compute inital output
 void initOuts() {
    for (int i = 0; i < 2; i++) {
       outputN[i].in1 = hiddenN[0].out;
@@ -200,6 +208,8 @@ void initOuts() {
    }
 }
 
+// Do an inference pass on the NN. Takes in a raw left/right sensor reading (0-255).
+// Returns a motor_command with speeds from 0 - 100
 struct motor_command compute_neural_network(u08 in1, u08 in2) {
 
    float leftReading = mapFloat(in1, 0, 255, 0, 1.0);
@@ -234,9 +244,10 @@ struct motor_command compute_neural_network(u08 in1, u08 in2) {
 void train_neural_network(int epochs) {
    for (int e = 0; e < epochs; e++) {
       for (int p = 0; p < 200; p++) {
-         // Forward pass: compute hidden layer
          u08 in1 = pairs[p].leftReading;
          u08 in2 = pairs[p].rightReading;
+
+         // Do a forward pass with current pair to prepare NN
          compute_neural_network(in1, in2);
 
          struct motor_command expected = compute_proportional(in1, in2);
@@ -248,8 +259,8 @@ void train_neural_network(int epochs) {
 
          // Backpropagation for output layer
          for (int i = 0; i < 2; i++) {
-            // TODO: Store old weights so we can access for hidden
 
+            // Since we are updating the weights, we need to store the old weights for hidden layer calculations
             oldOutWeights[i * 3] = outputN[i].w1;
             oldOutWeights[i * 3 + 1] = outputN[i].w2;
             oldOutWeights[i * 3 + 2] = outputN[i].w3;
@@ -257,6 +268,7 @@ void train_neural_network(int epochs) {
             float error = outputN[i].out - target[i];
             float sigmoid = outputN[i].out * (1 - outputN[i].out);
 
+            // Store important calculations for hidden layer calculations
             outCalcs[i] = error * sigmoid;
 
             // Update weights and bias
@@ -270,7 +282,6 @@ void train_neural_network(int epochs) {
          for (int i = 0; i < 3; i++) {
 
             float error = 0.0;
-            // Sum of gradients from output layer
             error += outCalcs[0] * oldOutWeights[i];
             error += outCalcs[1] * oldOutWeights[i + 3];
 
@@ -283,12 +294,45 @@ void train_neural_network(int epochs) {
          }
       }
 
-      learningRate -= 0.002;
+      if (learningRate > 0.005) {
+         learningRate -= 0.002;
+      }
+   }
+}
+
+// helper funtion to get epochs. Tilt board to select epochs. returns epoch amount greater than 0
+int tilt() {
+   int epochs = 25;
+   while (1) {
+      // clear_screen();
+
+      u08 ay = get_accel_y();
+
+      // Horizontal movement
+      if (epochs < 1)
+         epochs = 1;
+
+      if ((220 < ay) && (ay < 245)) {
+         epochs += 1;
+      } else if ((60 > ay) && (ay > 10)) {
+         epochs -= 1;
+         // pos_x--; // tilt to the left decreases horizontal position
+      }
+
+      lcd_cursor(0, 1);
+      print_num(epochs);
+      print_string(" ");
+
+      _delay_ms(100);
+
+      if (get_btn() == 1) {
+         return epochs;
+      }
    }
 }
 
 int main(void) {
-   init(); // initialize board hardware
+   init();
    set_servo(0, 127);
    set_servo(1, 127);
 
@@ -297,7 +341,9 @@ int main(void) {
    while (!get_btn()) {
       runController();
    }
-   _delay_ms(1000);
+   set_servo(0, 127);
+   set_servo(1, 127);
+   _delay_ms(500);
 
    clear_screen();
    print_string("Data");
@@ -305,35 +351,43 @@ int main(void) {
       captureControllerValues();
    }
 
-   _delay_ms(1000);
-
-   clear_screen();
-   print_string("Training");
+   _delay_ms(500);
    initHiddens();
    initOuts();
 
-   int epochs = 50;
-   train_neural_network(epochs);
-
-   clear_screen();
-   print_string("Done");
-   while (!get_btn())
-      ;
-
-   _delay_ms(1000);
    while (1) {
 
-      u08 leftReading = analog(LEFT_SENSOR);
-      u08 rigthReading = analog(RIGHT_SENSOR);
+      if (!runNNController) {
+         clear_screen();
+         print_string("Training");
 
-      struct motor_command command = compute_neural_network(leftReading, rigthReading);
+         int epochs = tilt();
+         train_neural_network(epochs);
 
-      clear_screen();
-      print_num(command.leftSpeed);
-      lcd_cursor(0, 1);
-      print_num(command.rightSpeed);
+         runNNController = !runNNController;
+         clear_screen();
+         print_string("Done");
+         while (!get_btn())
+            ;
+         _delay_ms(500);
+      } else {
+         u08 leftReading = analog(LEFT_SENSOR);
+         u08 rigthReading = analog(RIGHT_SENSOR);
 
-      motor(LEFT_MOTOR, command.leftSpeed);
-      motor(RIGHT_MOTOR, command.rightSpeed);
+         struct motor_command command = compute_neural_network(leftReading, rigthReading);
+
+         clear_screen();
+         print_num(command.leftSpeed);
+         lcd_cursor(0, 1);
+         print_num(command.rightSpeed);
+
+         motor(LEFT_MOTOR, command.leftSpeed);
+         motor(RIGHT_MOTOR, command.rightSpeed);
+
+         if (get_btn()) {
+            runNNController = !runNNController;
+            _delay_ms(500);
+         }
+      }
    }
 }
